@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { currentUser, getIdToken, signIn, signOut } from './auth'
 import './App.css'
 
 type MessageType = 'email' | 'text' | 'grading'
@@ -187,6 +188,15 @@ function App() {
   const [aiLoading, setAiLoading] = useState(false)
   const aiController = useRef<AbortController | null>(null)
 
+  const [user, setUser] = useState<string | null>(null)
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+
+  useEffect(() => {
+    currentUser().then(setUser)
+  }, [])
+
   const resetAI = () => {
     aiController.current?.abort()
     setAiOutput('')
@@ -223,6 +233,73 @@ function App() {
       </header>
 
       <main className="content">
+        <section className="card">
+          {user ? (
+            <div className="outputHeader">
+              <span className="label">Signed in as {user}</span>
+              <button
+                type="button"
+                className="primary"
+                onClick={async () => {
+                  await signOut()
+                  setUser(null)
+                  setUseAI(false)
+                  resetAI()
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="grid">
+              <label className="field span2">
+                <span className="label">Email</span>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="off"
+                />
+              </label>
+              <label className="field span2">
+                <span className="label">Password</span>
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  placeholder="Password"
+                />
+              </label>
+              <div className="field span2">
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={async () => {
+                    setAuthError('')
+                    try {
+                      const ok = await signIn(authEmail, authPassword)
+                      if (!ok) {
+                        setAuthError('Sign in failed')
+                        return
+                      }
+                      const u = await currentUser()
+                      setUser(u)
+                      setAuthEmail('')
+                      setAuthPassword('')
+                    } catch (e) {
+                      setAuthError(e instanceof Error ? e.message : 'Sign in failed')
+                    }
+                  }}
+                >
+                  Sign in
+                </button>
+              </div>
+              {authError ? <div className="error span2">{authError}</div> : null}
+            </div>
+          )}
+        </section>
+
         <section className="card">
           <div className="grid">
             <label className="field">
@@ -297,12 +374,17 @@ function App() {
               <input
                 type="checkbox"
                 checked={useAI}
+                disabled={!user}
                 onChange={(e) => {
+                  if (!user) {
+                    setAiError('Sign in to use AI')
+                    return
+                  }
                   setUseAI(e.target.checked)
                   setAiError('')
                 }}
               />
-              <span className="label">Use AI</span>
+              <span className="label">Use AI{user ? '' : ' (sign in required)'}</span>
             </label>
           </div>
 
@@ -319,10 +401,13 @@ function App() {
                     const controller = new AbortController()
                     aiController.current = controller
                     const apiUrl = import.meta.env.VITE_API_URL ?? ''
+                    const token = user ? await getIdToken() : undefined
+                    const headers: Record<string, string> = { 'content-type': 'application/json' }
+                    if (token) headers['authorization'] = token
                     const res = await fetch(`${apiUrl}/api/rewrite`, {
                       signal: controller.signal,
                       method: 'POST',
-                      headers: { 'content-type': 'application/json' },
+                      headers,
                       body: JSON.stringify({
                         shortMessage,
                         recipientName,
