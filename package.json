@@ -12,11 +12,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "openai": "^7.10.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

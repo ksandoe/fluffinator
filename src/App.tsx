@@ -217,7 +217,9 @@ function App() {
     <div className="app">
       <header className="header">
         <h1 className="title">Fluffinator</h1>
-        <p className="subtitle">Turn a curt message into something kind, clear, and polished.</p>
+        <p className="subtitle">
+          
+        </p>
       </header>
 
       <main className="content">
@@ -316,7 +318,8 @@ function App() {
                   try {
                     const controller = new AbortController()
                     aiController.current = controller
-                    const res = await fetch('/api/rewrite', {
+                    const apiUrl = import.meta.env.VITE_API_URL ?? ''
+                    const res = await fetch(`${apiUrl}/api/rewrite`, {
                       signal: controller.signal,
                       method: 'POST',
                       headers: { 'content-type': 'application/json' },

@@ -1,8 +1,12 @@
 import 'dotenv/config'
+import cors from 'cors'
 import express from 'express'
 import OpenAI from 'openai'
+import { pathToFileURL } from 'node:url'
+import serverlessHttp from 'serverless-http'
 
 const app = express()
+app.use(cors({ origin: true, allowedHeaders: ['Content-Type', 'Authorization'] }))
 app.use(express.json({ limit: '1mb' }))
 
 const port = Number(process.env.PORT ?? 8787)
@@ -64,6 +68,10 @@ app.post('/api/rewrite', async (req, res) => {
   }
 })
 
-app.listen(port, () => {
-  process.stdout.write(`API listening on http://localhost:${port}\n`)
-})
+export const handler = serverlessHttp(app)
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  app.listen(port, () => {
+    process.stdout.write(`API listening on http://localhost:${port}\n`)
+  })
+}
