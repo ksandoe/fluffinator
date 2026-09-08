@@ -1,305 +1,134 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { currentUser, getIdToken, signIn, signOut } from './auth'
 import './App.css'
 
 type MessageType = 'email' | 'text' | 'grading'
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n))
-}
-
-function pickByLevel<T>(items: T[], level: number) {
-  return items[clamp(level, 1, items.length) - 1]
-}
-
-function maybeWithEmoji(s: string, addEmojis: boolean, emoji: string) {
-  return addEmojis ? `${s} ${emoji}` : s
-}
-
-function toTitleCaseName(input: string) {
-  const s = input.trim()
-  if (!s) return ''
-
-  return s
-    .split(/\s+/)
-    .map((token) =>
-      token
-        .split(/([-’'])/)
-        .map((part) => {
-          if (part === '-' || part === '’' || part === "'") return part
-          const letters = part.replace(/[^\p{L}]/gu, '')
-          if (!letters) return part
-          return part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()
-        })
-        .join(''),
-    )
-    .join(' ')
-}
-
-function fluffify({
-  shortMessage,
-  recipientName,
-  type,
-  effusiveness,
-  addEmojis,
-}: {
-  shortMessage: string
-  recipientName: string
-  type: MessageType
-  effusiveness: number
-  addEmojis: boolean
-}) {
-  const level = clamp(Math.round(effusiveness), 1, 5)
-  const name = toTitleCaseName(recipientName)
-  const msg = shortMessage.trim()
-  const firstName = name.split(/\s+/)[0] ?? ''
-  const addressee = name || 'there'
-
-  const greeting = pickByLevel(
-    [
-      type === 'text' ? 'Hey' : 'Hi',
-      type === 'text' ? 'Hey' : 'Hello',
-      'Hello',
-      'Hi',
-      'Hello',
-    ],
-    level,
-  )
-
-  const opener = pickByLevel(
-    [
-      '',
-      type === 'text' ? '' : 'Hope your day is going smoothly.',
-      'Hope your day is going smoothly.',
-      'Hope things are going well on your end.',
-      'Hope you’re having a great day.',
-    ],
-    level,
-  )
-
-  const softeners = pickByLevel(
-    [
-      '',
-      type === 'text' ? '' : 'Just a quick note:',
-      'Just a quick note:',
-      'Just wanted to reach out and share:',
-      'I wanted to reach out and share a quick update:',
-    ],
-    level,
-  )
-
-  const closing = pickByLevel(
-    [
-      type === 'text' ? 'Thanks.' : 'Thanks,',
-      type === 'text' ? 'Thanks!' : 'Thanks,',
-      type === 'text' ? 'Thank you!' : 'Thank you,',
-      type === 'text' ? 'Thanks so much!' : 'Thanks so much,',
-      type === 'text' ? 'Thanks a ton!' : 'Thanks so much,',
-    ],
-    level,
-  )
-
-  const signoff = pickByLevel(
-    [
-      '—',
-      '—',
-      'Best,',
-      'Warmly,',
-      'With appreciation,',
-    ],
-    level,
-  )
-
-  const emojiGreeting = pickByLevel(['🙂', '👋', '✨', '🌟', '💛'], level)
-  const emojiClosing = pickByLevel(['✅', '😊', '🙌', '✨', '🌼'], level)
-
-  const normalizedMsg = msg
-    ? msg.endsWith('.') || msg.endsWith('!') || msg.endsWith('?')
-      ? msg
-      : `${msg}.`
-    : ''
-
-  if (!normalizedMsg && !name) return ''
-
-  if (type === 'text') {
-    const parts: string[] = []
-    const g = `${greeting}${firstName ? ` ${firstName}` : ''}`
-    parts.push(maybeWithEmoji(g, addEmojis, emojiGreeting))
-    if (opener) parts.push(opener)
-    if (softeners) parts.push(softeners)
-    if (normalizedMsg) parts.push(normalizedMsg)
-    parts.push(maybeWithEmoji(closing, addEmojis, emojiClosing))
-    return parts.filter(Boolean).join(' ')
-  }
-
-  if (type === 'grading') {
-    const tone = pickByLevel(
-      [
-        'Note:',
-        'Quick note:',
-        'Feedback:',
-        'A bit of feedback:',
-        'A few thoughts (you’re doing great):',
-      ],
-      level,
-    )
-
-    const encouragement = pickByLevel(
-      ['', 'Nice work overall.', 'Nice work overall.', 'Great effort—keep it up.', 'Really strong effort—keep it up.'],
-      level,
-    )
-
-    const parts: string[] = []
-    const toneWithEmoji = maybeWithEmoji(tone, addEmojis, emojiGreeting)
-    parts.push(`${toneWithEmoji}`)
-    if (encouragement) parts.push(encouragement)
-    if (normalizedMsg) parts.push(normalizedMsg)
-    if (addEmojis) parts.push(emojiClosing)
-    return parts.filter(Boolean).join(' ')
-  }
-
-  const subjectHint = pickByLevel(
-    ['', '', 'Re:', 'Re:', 'Re:'],
-    level,
-  )
-
-  const bodyLines: string[] = []
-  const greetingLine = `${maybeWithEmoji(greeting, addEmojis, emojiGreeting)} ${addressee},`
-  bodyLines.push(greetingLine)
-  if (opener) bodyLines.push(opener)
-  if (softeners) bodyLines.push(softeners)
-  if (normalizedMsg) bodyLines.push(normalizedMsg)
-  bodyLines.push('')
-  bodyLines.push(maybeWithEmoji(closing, addEmojis, emojiClosing))
-  bodyLines.push(signoff)
-
-  return `${subjectHint ? `${subjectHint} ` : ''}${bodyLines.join('\n')}`.trim()
-}
-
 function App() {
+  const [user, setUser] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    currentUser().then((u) => {
+      setUser(u)
+      setLoading(false)
+    })
+  }, [])
+
+  if (loading) return <div className="app loading" />
+
+  if (!user) {
+    return (
+      <div className="app">
+        <SignInForm onSignIn={setUser} />
+      </div>
+    )
+  }
+
+  return <FluffinatorApp user={user} onSignOut={() => setUser(null)} />
+}
+
+function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  return (
+    <main className="signin">
+      <h1 className="title">Fluffinator</h1>
+      <p className="subtitle">Sign in to generate friendly, polished messages.</p>
+      <form
+        className="card"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          setError('')
+          try {
+            const ok = await signIn(email, password)
+            if (!ok) {
+              setError('Sign in failed')
+              return
+            }
+            const u = await currentUser()
+            onSignIn(u)
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Sign in failed')
+          }
+        }}
+      >
+        <label className="field">
+          <span className="label">Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="off"
+            required
+          />
+        </label>
+        <label className="field">
+          <span className="label">Password</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+        </label>
+        {error ? <div className="error">{error}</div> : null}
+        <button type="submit" className="primary">
+          Sign in
+        </button>
+      </form>
+    </main>
+  )
+}
+
+function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => void }) {
   const [shortMessage, setShortMessage] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [type, setType] = useState<MessageType>('email')
   const [addEmojis, setAddEmojis] = useState(false)
   const [effusiveness, setEffusiveness] = useState(3)
-  const [useAI, setUseAI] = useState(false)
-  const [aiOutput, setAiOutput] = useState<string>('')
-  const [aiError, setAiError] = useState<string>('')
-  const [aiLoading, setAiLoading] = useState(false)
+  const [output, setOutput] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState(false)
   const aiController = useRef<AbortController | null>(null)
-
-  const [user, setUser] = useState<string | null>(null)
-  const [authEmail, setAuthEmail] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [authError, setAuthError] = useState('')
-
-  useEffect(() => {
-    currentUser().then(setUser)
-  }, [])
-
-  const resetAI = () => {
-    aiController.current?.abort()
-    setAiOutput('')
-  }
 
   useEffect(() => () => aiController.current?.abort(), [])
 
-  const templateOutput = useMemo(
-    () =>
-      fluffify({
-        shortMessage,
-        recipientName,
-        type,
-        effusiveness,
-        addEmojis,
-      }),
-    [shortMessage, recipientName, type, effusiveness, addEmojis],
-  )
-
-  const output = useMemo(() => {
-    if (useAI) return aiOutput || templateOutput
-    return templateOutput
-  }, [useAI, aiOutput, templateOutput])
+  const reset = () => {
+    aiController.current?.abort()
+    setOutput('')
+    setError('')
+  }
 
   const canCopy = Boolean(output)
 
   return (
     <div className="app">
       <header className="header">
-        <h1 className="title">Fluffinator</h1>
-        <p className="subtitle">
-          
-        </p>
+        <div>
+          <h1 className="title">Fluffinator</h1>
+          <p className="subtitle">Turn a curt message into something kind, clear, and polished.</p>
+        </div>
+        <div className="user">
+          <span className="label">{user}</span>
+          <button
+            type="button"
+            className="primary"
+            onClick={async () => {
+              await signOut()
+              onSignOut()
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       <main className="content">
-        <section className="card">
-          {user ? (
-            <div className="outputHeader">
-              <span className="label">Signed in as {user}</span>
-              <button
-                type="button"
-                className="primary"
-                onClick={async () => {
-                  await signOut()
-                  setUser(null)
-                  setUseAI(false)
-                  resetAI()
-                }}
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <div className="grid">
-              <label className="field span2">
-                <span className="label">Email</span>
-                <input
-                  type="email"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="off"
-                />
-              </label>
-              <label className="field span2">
-                <span className="label">Password</span>
-                <input
-                  type="password"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="Password"
-                />
-              </label>
-              <div className="field span2">
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={async () => {
-                    setAuthError('')
-                    try {
-                      const ok = await signIn(authEmail, authPassword)
-                      if (!ok) {
-                        setAuthError('Sign in failed')
-                        return
-                      }
-                      const u = await currentUser()
-                      setUser(u)
-                      setAuthEmail('')
-                      setAuthPassword('')
-                    } catch (e) {
-                      setAuthError(e instanceof Error ? e.message : 'Sign in failed')
-                    }
-                  }}
-                >
-                  Sign in
-                </button>
-              </div>
-              {authError ? <div className="error span2">{authError}</div> : null}
-            </div>
-          )}
-        </section>
-
         <section className="card">
           <div className="grid">
             <label className="field">
@@ -308,7 +137,7 @@ function App() {
                 value={type}
                 onChange={(e) => {
                   setType(e.target.value as MessageType)
-                  resetAI()
+                  reset()
                 }}
               >
                 <option value="email">Email</option>
@@ -323,7 +152,7 @@ function App() {
                 value={recipientName}
                 onChange={(e) => {
                   setRecipientName(e.target.value)
-                  resetAI()
+                  reset()
                 }}
                 placeholder="e.g., Alex"
                 autoComplete="off"
@@ -336,7 +165,7 @@ function App() {
                 value={shortMessage}
                 onChange={(e) => {
                   setShortMessage(e.target.value)
-                  resetAI()
+                  reset()
                 }}
                 placeholder="e.g., Please send the updated file by EOD"
                 rows={4}
@@ -353,7 +182,7 @@ function App() {
                 value={effusiveness}
                 onChange={(e) => {
                   setEffusiveness(Number(e.target.value))
-                  resetAI()
+                  reset()
                 }}
               />
             </label>
@@ -364,89 +193,70 @@ function App() {
                 checked={addEmojis}
                 onChange={(e) => {
                   setAddEmojis(e.target.checked)
-                  resetAI()
+                  reset()
                 }}
               />
               <span className="label">Add emojis</span>
             </label>
-
-            <label className="field checkbox">
-              <input
-                type="checkbox"
-                checked={useAI}
-                disabled={!user}
-                onChange={(e) => {
-                  if (!user) {
-                    setAiError('Sign in to use AI')
-                    return
-                  }
-                  setUseAI(e.target.checked)
-                  setAiError('')
-                }}
-              />
-              <span className="label">Use AI{user ? '' : ' (sign in required)'}</span>
-            </label>
           </div>
 
-          {useAI ? (
-            <div className="aiRow">
-              <button
-                type="button"
-                className="primary"
-                disabled={aiLoading || !shortMessage.trim()}
-                onClick={async () => {
-                  setAiLoading(true)
-                  setAiError('')
-                  try {
-                    const controller = new AbortController()
-                    aiController.current = controller
-                    const apiUrl = import.meta.env.VITE_API_URL ?? ''
-                    const token = user ? await getIdToken() : undefined
-                    const headers: Record<string, string> = { 'content-type': 'application/json' }
-                    if (token) headers['authorization'] = token
-                    const res = await fetch(`${apiUrl}/api/rewrite`, {
-                      signal: controller.signal,
-                      method: 'POST',
-                      headers,
-                      body: JSON.stringify({
-                        shortMessage,
-                        recipientName,
-                        type,
-                        effusiveness,
-                        addEmojis,
-                      }),
-                    })
+          <div className="aiRow">
+            <button
+              type="button"
+              className="primary"
+              disabled={loading || !shortMessage.trim()}
+              onClick={async () => {
+                setLoading(true)
+                setError('')
+                try {
+                  const controller = new AbortController()
+                  aiController.current = controller
+                  const apiUrl = import.meta.env.VITE_API_URL ?? ''
+                  const token = await getIdToken()
+                  const headers: Record<string, string> = { 'content-type': 'application/json' }
+                  if (token) headers['authorization'] = token
+                  const res = await fetch(`${apiUrl}/api/rewrite`, {
+                    signal: controller.signal,
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                      shortMessage,
+                      recipientName,
+                      type,
+                      effusiveness,
+                      addEmojis,
+                    }),
+                  })
 
-                    const data = (await res.json().catch(() => null)) as
-                      | { text?: string; error?: string }
-                      | null
+                  const data = (await res.json().catch(() => null)) as
+                    | { text?: string; error?: string }
+                    | null
 
-                    if (!res.ok) {
-                      setAiError(data?.error || `Request failed (${res.status})`)
-                      return
-                    }
-
-                    const text = data?.text?.trim() ?? ''
-                    if (!text) {
-                      setAiError('Empty AI response')
-                      return
-                    }
-
-                    setAiOutput(text)
-                  } catch (e) {
-                    if (e instanceof DOMException && e.name === 'AbortError') return
-                    setAiError(e instanceof Error ? e.message : 'Failed to call AI')
-                  } finally {
-                    setAiLoading(false)
-                    aiController.current = null
+                  if (!res.ok) {
+                    setError(data?.error || `Request failed (${res.status})`)
+                    return
                   }
-                }}
-              >
-                {aiLoading ? 'Generating…' : 'Generate with AI'}
-              </button>
-              {aiError ? <div className="error">{aiError}</div> : null}
-            </div>
-          ) : null}
+
+                  const text = data?.text?.trim() ?? ''
+                  if (!text) {
+                    setError('Empty AI response')
+                    return
+                  }
+
+                  setOutput(text)
+                } catch (e) {
+                  if (e instanceof DOMException && e.name === 'AbortError') return
+                  setError(e instanceof Error ? e.message : 'Failed to call AI')
+                } finally {
+                  setLoading(false)
+                  aiController.current = null
+                }
+              }}
+            >
+              {loading ? 'Generating…' : 'Generate'}
+            </button>
+            {error ? <div className="error">{error}</div> : null}
+          </div>
         </section>
 
         <section className="card">
