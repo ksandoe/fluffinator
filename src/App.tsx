@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { currentUser, getIdToken, signIn, signOut } from './auth'
+import {
+  currentUser,
+  getIdToken,
+  resendCode,
+  sendCode,
+  setTokenStorage,
+  signOut,
+  verifyCode,
+  type AuthStep,
+} from './auth'
 import './App.css'
 
 type MessageType = 'email' | 'text' | 'grading'
@@ -30,28 +39,65 @@ function App() {
 
 function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState<AuthStep | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [remember, setRemember] = useState(true)
+
+  const start = async () => {
+    setLoading(true)
+    setError('')
+    const { step: s, error: e } = await sendCode(email)
+    setLoading(false)
+    if (e) {
+      setError(e)
+      setStep(null)
+    } else {
+      setStep(s)
+    }
+  }
+
+  const verify = async () => {
+    setLoading(true)
+    setError('')
+    setTokenStorage(remember)
+    const { success, error: e } = await verifyCode(email, code, step as AuthStep)
+    setLoading(false)
+    if (e) {
+      setError(e)
+      return
+    }
+    if (success) {
+      const u = await currentUser()
+      onSignIn(u)
+    } else {
+      setError('Verification failed')
+    }
+  }
+
+  const resend = async () => {
+    setLoading(true)
+    setError('')
+    const { error: e } = await resendCode(email, step as AuthStep)
+    setLoading(false)
+    if (e) {
+      setError(e)
+    }
+  }
 
   return (
     <main className="signin">
       <h1 className="title">Fluffinator</h1>
-      <p className="subtitle">Sign in to generate friendly, polished messages.</p>
+      <p className="subtitle">Enter your email and we’ll send you a one-time code.</p>
       <form
         className="card"
         onSubmit={async (e) => {
           e.preventDefault()
-          setError('')
-          try {
-            const ok = await signIn(email, password)
-            if (!ok) {
-              setError('Sign in failed')
-              return
-            }
-            const u = await currentUser()
-            onSignIn(u)
-          } catch (err) {
-            setError(err instanceof Error ? err.message : 'Sign in failed')
+          if (step && step !== 'EMAIL') {
+            await verify()
+          } else {
+            await start()
           }
         }}
       >
@@ -60,26 +106,76 @@ function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              setStep(null)
+              setCode('')
+              setError('')
+            }}
             placeholder="you@example.com"
             autoComplete="off"
             required
+            disabled={loading}
           />
         </label>
-        <label className="field">
-          <span className="label">Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-          />
-        </label>
+
+        {!step ? (
+          <button type="submit" className="primary" disabled={loading || !email.trim()}>
+            {loading ? 'Sending…' : 'Send code'}
+          </button>
+        ) : (
+          <>
+            <p className="hint">A code was sent to {email}.</p>
+            <label className="field">
+              <span className="label">One-time code</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="123456"
+                autoComplete="one-time-code"
+                required
+                disabled={loading}
+              />
+            </label>
+
+            <label className="field checkbox">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                disabled={loading}
+              />
+              <span className="label">Trust this device</span>
+            </label>
+
+            <button type="submit" className="primary" disabled={loading || !code.trim()}>
+              {loading ? 'Verifying…' : 'Verify'}
+            </button>
+
+            <div className="actions">
+              <button type="button" className="link" onClick={resend} disabled={loading}>
+                Resend code
+              </button>
+              <button
+                type="button"
+                className="link"
+                onClick={() => {
+                  setStep(null)
+                  setCode('')
+                  setError('')
+                }}
+                disabled={loading}
+              >
+                Use a different email
+              </button>
+            </div>
+          </>
+        )}
+
         {error ? <div className="error">{error}</div> : null}
-        <button type="submit" className="primary">
-          Sign in
-        </button>
       </form>
     </main>
   )
