@@ -173,6 +173,7 @@
 }
 
 .signin {
+  position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -181,14 +182,34 @@
   gap: 8px;
   padding: 32px 24px;
   text-align: center;
+  color: white;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)),
+    url('/dandelion.jpg') center / cover no-repeat;
+}
+
+.signin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.55) 100%);
+  z-index: 0;
+}
+
+.signin > * {
+  position: relative;
+  z-index: 1;
 }
 
 .signin .title {
   text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  color: white;
 }
 
 .signin .subtitle {
   margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .signin .card {
@@ -197,6 +218,28 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  color: white;
+}
+
+.signin .field .label {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.signin .field input,
+.signin .field select,
+.signin .field textarea {
+  color: white;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.signin .field input::placeholder,
+.signin .field textarea::placeholder,
+.signin .field select:invalid {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .signin .primary {
@@ -207,7 +250,7 @@
 .hint {
   margin: 0;
   font-size: 14px;
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .actions {
@@ -220,7 +263,7 @@
 .link {
   font: inherit;
   font-size: 14px;
-  color: var(--accent);
+  color: rgba(255, 255, 255, 0.9);
   background: none;
   border: none;
   padding: 0;
@@ -228,9 +271,17 @@
   text-decoration: underline;
 }
 
+.link:hover {
+  color: white;
+}
+
 .link:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.signin .error {
+  color: #ffb3b3;
 }
 
 @media (max-width: 720px) {
