@@ -1,7 +1,70 @@
 .app {
+  position: relative;
   width: 100%;
+  min-height: 100svh;
   padding: 32px 24px 48px;
   box-sizing: border-box;
+  color: white;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.6) 100%),
+    url('/main-bg.jpg') center / cover no-repeat;
+}
+
+.app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
+  z-index: 0;
+}
+
+.app > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app .title,
+.app .h2,
+.app .subtitle {
+  color: white;
+}
+
+.app .subtitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.app .card {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  color: white;
+}
+
+.app .field .label {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.app .field input,
+.app .field select,
+.app .field textarea {
+  color: white;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app .field input::placeholder,
+.app .field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.app .output {
+  color: white;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app .error {
+  color: #ffb3b3;
 }
 
 .header {
@@ -126,7 +189,7 @@
   border-radius: 10px;
   border: 1px solid transparent;
   background: var(--accent);
-  color: white;
+  color: #111;
   cursor: pointer;
 }
 
