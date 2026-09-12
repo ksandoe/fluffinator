@@ -64,7 +64,8 @@ async function checkRateLimit(userId) {
 
 app.post('/api/rewrite', async (req, res) => {
   try {
-    const { shortMessage, recipientName, type, effusiveness, addEmojis } = req.body ?? {}
+    const { shortMessage, recipientName, type, fluffiness, effusiveness, addEmojis, tones } =
+      req.body ?? {}
 
     if (typeof shortMessage !== 'string') {
       return res.status(400).json({ error: 'shortMessage must be a string' })
@@ -81,15 +82,24 @@ app.post('/api/rewrite', async (req, res) => {
 
     const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
 
+    const toneList =
+      tones && typeof tones === 'object'
+        ? Object.entries(tones)
+            .map(([k, v]) => `${k}: ${v}/5`)
+            .join(', ')
+        : ''
+
     const system =
-      'You rewrite short messages into a friendly, polished version. Preserve intent. Be natural and non-cliché. Avoid overused AI phrases, especially "Hope you’re doing well". Do not invent facts. Keep it appropriate for the chosen message type.'
+      'You rewrite short messages into a friendly, polished version. Preserve intent. Be natural and non-cliché. Avoid overused AI phrases, especially "Hope you’re doing well". Do not invent facts. Keep it appropriate for the chosen message type.' +
+      (toneList ? ` Target tone levels (1-5): ${toneList}.` : '')
 
     const user = JSON.stringify(
       {
         shortMessage,
         recipientName,
         type,
-        effusiveness,
+        fluffiness: fluffiness ?? effusiveness,
+        tones,
         addEmojis,
       },
       null,

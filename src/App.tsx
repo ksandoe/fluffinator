@@ -9,9 +9,14 @@ import {
   verifyCode,
   type AuthStep,
 } from './auth'
+import { SettingsModal } from './SettingsModal'
+import {
+  effectiveTones,
+  loadToneSettings,
+  type MessageType,
+  type ToneSettings,
+} from './tones'
 import './App.css'
-
-type MessageType = 'email' | 'text' | 'grading'
 
 function App() {
   const [user, setUser] = useState<string | null>(null)
@@ -186,7 +191,9 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
   const [recipientName, setRecipientName] = useState('')
   const [type, setType] = useState<MessageType>('email')
   const [addEmojis, setAddEmojis] = useState(false)
-  const [effusiveness, setEffusiveness] = useState(3)
+  const [fluffiness, setFluffiness] = useState(3)
+  const [toneSettings, setToneSettings] = useState<ToneSettings>(loadToneSettings)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [output, setOutput] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -210,6 +217,13 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
           <p className="subtitle">Turn a curt message into something kind, clear, and polished.</p>
         </div>
         <div className="user">
+          <button
+            type="button"
+            className="primary"
+            onClick={() => setSettingsOpen(true)}
+          >
+            Settings
+          </button>
           <span className="label">{user}</span>
           <button
             type="button"
@@ -269,15 +283,15 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
             </label>
 
             <label className="field">
-              <span className="label">Effusiveness: {Math.round(effusiveness)}/5</span>
+              <span className="label">Fluffiness: {Math.round(fluffiness)}/5</span>
               <input
                 type="range"
                 min={1}
                 max={5}
                 step={1}
-                value={effusiveness}
+                value={fluffiness}
                 onChange={(e) => {
-                  setEffusiveness(Number(e.target.value))
+                  setFluffiness(Number(e.target.value))
                   reset()
                 }}
               />
@@ -319,8 +333,9 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
                       shortMessage,
                       recipientName,
                       type,
-                      effusiveness,
+                      fluffiness,
                       addEmojis,
+                      tones: effectiveTones(toneSettings, type, fluffiness),
                     }),
                   })
 
@@ -373,6 +388,15 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
           <textarea className="output" value={output} readOnly rows={10} aria-label="Generated fluffy message" />
         </section>
       </main>
+
+      {settingsOpen ? (
+        <SettingsModal
+          settings={toneSettings}
+          currentType={type}
+          onChange={setToneSettings}
+          onClose={() => setSettingsOpen(false)}
+        />
+      ) : null}
     </div>
   )
 }

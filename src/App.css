@@ -347,6 +347,65 @@
   color: #ffb3b3;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90svh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tones {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.tone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.toneHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.toneValue {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.tone input[type='range'],
+.field input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.toneEnds {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 @media (max-width: 720px) {
   .app {
     padding: 20px 16px 32px;
