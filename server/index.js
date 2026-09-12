@@ -18,12 +18,65 @@ if (!apiKey) {
 
 const client = new OpenAI({ apiKey })
 
+const usageTable = process.env.USAGE_TABLE
+const rateLimitPerDay = Number(process.env.RATE_LIMIT_PER_DAY ?? 20)
+
+let dynamo
+async function getDynamo() {
+  if (!dynamo) {
+    const { DynamoDBClient, UpdateItemCommand } = await import('@aws-sdk/client-dynamodb')
+    dynamo = { client: new DynamoDBClient({}), UpdateItemCommand }
+  }
+  return dynamo
+}
+
+async function checkRateLimit(userId) {
+  if (!usageTable) return true
+
+  const { client, UpdateItemCommand } = await getDynamo()
+  const today = new Date().toISOString().slice(0, 10)
+  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60 * 48
+
+  try {
+    await client.send(
+      new UpdateItemCommand({
+        TableName: usageTable,
+        Key: {
+          userId: { S: userId },
+          date: { S: today },
+        },
+        UpdateExpression: 'ADD #count :one SET expiresAt = :exp',
+        ConditionExpression: 'attribute_not_exists(#count) OR #count < :limit',
+        ExpressionAttributeNames: { '#count': 'count' },
+        ExpressionAttributeValues: {
+          ':one': { N: '1' },
+          ':exp': { N: String(expiresAt) },
+          ':limit': { N: String(rateLimitPerDay) },
+        },
+      }),
+    )
+    return true
+  } catch (err) {
+    if (err.name === 'ConditionalCheckFailedException') return false
+    throw err
+  }
+}
+
 app.post('/api/rewrite', async (req, res) => {
   try {
     const { shortMessage, recipientName, type, effusiveness, addEmojis } = req.body ?? {}
 
     if (typeof shortMessage !== 'string') {
       return res.status(400).json({ error: 'shortMessage must be a string' })
+    }
+
+    const userId = req.requestContext?.authorizer?.claims?.sub
+    if (usageTable) {
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' })
+      const allowed = await checkRateLimit(userId)
+      if (!allowed) {
+        return res.status(429).json({ error: `Daily limit of ${rateLimitPerDay} requests reached` })
+      }
     }
 
     const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini'
