@@ -10,6 +10,7 @@ import {
   type AuthStep,
 } from './auth'
 import { SettingsModal } from './SettingsModal'
+import { TosModal } from './TosModal'
 import {
   effectiveTones,
   loadToneSettings,
@@ -39,7 +40,7 @@ function App() {
     )
   }
 
-  return <FluffinatorApp user={user} onSignOut={() => setUser(null)} />
+  return <FluffinatorApp onSignOut={() => setUser(null)} />
 }
 
 function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
@@ -49,6 +50,7 @@ function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [remember, setRemember] = useState(true)
+  const [tosOpen, setTosOpen] = useState(false)
 
   const start = async () => {
     setLoading(true)
@@ -94,7 +96,7 @@ function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
   return (
     <main className="signin">
       <h1 className="title">Fluffinator</h1>
-      <p className="subtitle">Enter your email and we’ll send you a one-time code.</p>
+      <p className="subtitle">Turn a curt message into something kind, clear, and polished.</p>
       <form
         className="card"
         onSubmit={async (e) => {
@@ -106,6 +108,7 @@ function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
           }
         }}
       >
+        <p className="hint">Enter your email and we’ll send you a one-time code.</p>
         <label className="field">
           <span className="label">Email</span>
           <input
@@ -181,12 +184,22 @@ function SignInForm({ onSignIn }: { onSignIn: (user: string | null) => void }) {
         )}
 
         {error ? <div className="error">{error}</div> : null}
+
+        <p className="hint">
+          By continuing, you agree to the{' '}
+          <button type="button" className="link" onClick={() => setTosOpen(true)}>
+            Terms of Service
+          </button>
+          .
+        </p>
       </form>
+
+      {tosOpen ? <TosModal onClose={() => setTosOpen(false)} /> : null}
     </main>
   )
 }
 
-function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => void }) {
+function FluffinatorApp({ onSignOut }: { onSignOut: () => void }) {
   const [shortMessage, setShortMessage] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [type, setType] = useState<MessageType>('email')
@@ -224,7 +237,6 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
           >
             Settings
           </button>
-          <span className="label">{user}</span>
           <button
             type="button"
             className="primary"
@@ -364,7 +376,7 @@ function FluffinatorApp({ user, onSignOut }: { user: string; onSignOut: () => vo
                 }
               }}
             >
-              {loading ? 'Generating…' : 'Generate'}
+              {loading ? 'Fluffifying…' : 'Fluffify'}
             </button>
             {error ? <div className="error">{error}</div> : null}
           </div>

@@ -9,6 +9,13 @@ import {
 
 const DEFAULT_TONES = Object.fromEntries(TONES.map((t) => [t.key, 3]))
 
+const SCOPE_LABELS: Record<SettingsScope, string> = {
+  all: 'All message types',
+  email: 'Email',
+  text: 'Text',
+  grading: 'Grading comment',
+}
+
 export function SettingsModal({
   settings,
   currentType,
@@ -54,7 +61,7 @@ export function SettingsModal({
         </div>
 
         <label className="field">
-          <span className="label">Apply to</span>
+          <span className="label">Edit settings for</span>
           <select value={scope} onChange={(e) => setScope(e.target.value as SettingsScope)}>
             <option value="all">All message types</option>
             <option value="email">Email</option>
@@ -63,19 +70,24 @@ export function SettingsModal({
           </select>
         </label>
 
-        {hasOverride ? (
+        {scope === 'all' ? (
+          <p className="hint">These defaults apply to every message type.</p>
+        ) : hasOverride ? (
           <p className="hint">
-            Custom {scope} settings.{' '}
+            Custom {SCOPE_LABELS[scope]} settings — they override the “All message types”
+            defaults.{' '}
             <button type="button" className="link" onClick={clearOverride}>
               Reset to defaults
             </button>
           </p>
-        ) : scope !== 'all' ? (
+        ) : (
           <p className="hint">
-            Using the “All message types” defaults. Move a slider to create a {scope}-specific
-            override.
+            {SCOPE_LABELS[scope]} currently uses the “All message types” defaults — move a
+            slider to customize just this type.
           </p>
-        ) : null}
+        )}
+
+        <p className="hint">Changes save automatically.</p>
 
         <div className="tones">
           {TONES.map((t) => (

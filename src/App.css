@@ -6,16 +6,8 @@
   box-sizing: border-box;
   color: white;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.6) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.35) 100%),
     url('/main-bg.jpg') center / cover no-repeat;
-}
-
-.app::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
-  z-index: 0;
 }
 
 .app > * {
@@ -44,9 +36,9 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-.app .field input,
-.app .field select,
-.app .field textarea {
+.app .card .field input,
+.app .card .field select,
+.app .card .field textarea {
   color: white;
   background: rgba(0, 0, 0, 0.35);
   border-color: rgba(255, 255, 255, 0.2);
@@ -54,7 +46,25 @@
 
 .app .field input::placeholder,
 .app .field textarea::placeholder {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.app .field input:-webkit-autofill,
+.app .field input:-webkit-autofill:hover,
+.app .field input:-webkit-autofill:focus,
+.signin .field input:-webkit-autofill,
+.signin .field input:-webkit-autofill:hover,
+.signin .field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: white;
+  -webkit-box-shadow: 0 0 0 1000px #2a2c30 inset;
+  caret-color: white;
+  transition: background-color 600000s 0s;
+}
+
+.app .field input:autofill,
+.signin .field input:autofill {
+  background-color: #2a2c30;
+  color: white;
 }
 
 .app .output {
@@ -131,6 +141,7 @@
 }
 
 .field input[type='text'],
+.field input[type='email'],
 .field input:not([type]),
 .field select,
 .field textarea {
@@ -139,13 +150,13 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   outline: none;
 }
 
 .field textarea {
   resize: vertical;
-  min-height: 96px;
+  min-height: 128px;
 }
 
 .field input:focus,
@@ -206,14 +217,13 @@
 .output {
   width: 100%;
   box-sizing: border-box;
-  font-family: var(--mono);
-  font-size: 14px;
+  font: inherit;
   line-height: 150%;
   color: var(--text-h);
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 12px;
+  padding: 12px 14px;
 }
 
 .aiRow {
@@ -246,16 +256,8 @@
   padding: 32px 24px;
   text-align: center;
   color: white;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)),
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.35)),
     url('/dandelion.jpg') center / cover no-repeat;
-}
-
-.signin::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.55) 100%);
-  z-index: 0;
 }
 
 .signin > * {
@@ -291,9 +293,9 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-.signin .field input,
-.signin .field select,
-.signin .field textarea {
+.signin .card .field input,
+.signin .card .field select,
+.signin .card .field textarea {
   color: white;
   background: rgba(0, 0, 0, 0.35);
   border-color: rgba(255, 255, 255, 0.2);
@@ -404,6 +406,23 @@
   justify-content: space-between;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.tosBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.tosBody h3 {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
 }
 
 @media (max-width: 720px) {
