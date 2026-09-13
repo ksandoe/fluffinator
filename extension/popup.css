@@ -1,0 +1,264 @@
+:root {
+  --accent: #f2c94c;
+  --text: rgba(255, 255, 255, 0.85);
+  --border: rgba(255, 255, 255, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  font: 15px/145% system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background:
+    linear-gradient(160deg, #23262e 0%, #14161b 100%);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.view {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  color: white;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header .title {
+  text-align: left;
+  font-size: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.field.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.field.checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.field input[type='text'],
+.field input[type='email'],
+.field input:not([type]),
+.field select,
+.field textarea {
+  font: inherit;
+  color: white;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  outline: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(242, 201, 76, 0.5);
+  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.15);
+}
+
+.field select option {
+  color: #111;
+  background: white;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.field input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.primary {
+  font: inherit;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #111;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.link {
+  font: inherit;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link:hover {
+  color: white;
+}
+
+.link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aiRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.outputHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: white;
+}
+
+.output {
+  width: 100%;
+  font: inherit;
+  line-height: 150%;
+  color: white;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.error {
+  font-size: 13px;
+  color: #ffb3b3;
+  text-align: left;
+}
+
+.error:empty {
+  display: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tones {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tone {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.toneHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.toneValue {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.toneEnds {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}

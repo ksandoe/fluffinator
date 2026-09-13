@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fluffinator</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main id="signinView" class="view hidden">
+      <h1 class="title">Fluffinator</h1>
+      <p class="subtitle">Turn a curt message into something kind, clear, and polished.</p>
+      <form id="signinForm" class="card">
+        <p class="hint" id="signinHint">Enter your email and we’ll send you a one-time code.</p>
+        <label class="field">
+          <span class="label">Email</span>
+          <input
+            type="email"
+            id="email"
+            placeholder="you@example.com"
+            autocomplete="off"
+            required
+          />
+        </label>
+        <div id="codeSection" class="hidden">
+          <label class="field">
+            <span class="label">One-time code</span>
+            <input
+              type="text"
+              id="code"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="123456"
+              autocomplete="one-time-code"
+            />
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="remember" checked />
+            <span class="label">Trust this device</span>
+          </label>
+        </div>
+        <button type="submit" class="primary" id="signinBtn">Send code</button>
+        <div class="actions hidden" id="codeActions">
+          <button type="button" class="link" id="resendBtn">Resend code</button>
+          <button type="button" class="link" id="differentEmailBtn">Use a different email</button>
+        </div>
+        <div class="error" id="signinError"></div>
+      </form>
+    </main>
+
+    <main id="mainView" class="view hidden">
+      <header class="header">
+        <h1 class="title">Fluffinator</h1>
+        <div class="row">
+          <button type="button" class="link" id="settingsBtn">Settings</button>
+          <button type="button" class="link" id="signOutBtn">Sign out</button>
+        </div>
+      </header>
+      <section class="card">
+        <div class="grid">
+          <label class="field">
+            <span class="label">Message type</span>
+            <select id="type">
+              <option value="email">Email</option>
+              <option value="text">Text</option>
+              <option value="grading">Grading comment</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Recipient name</span>
+            <input id="recipient" placeholder="e.g., Alex" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span class="label">Short message</span>
+            <textarea
+              id="message"
+              rows="4"
+              placeholder="e.g., Please send the updated file by EOD"
+            ></textarea>
+          </label>
+          <label class="field">
+            <span class="label">Fluffiness: <span id="fluffVal">3</span>/5</span>
+            <input type="range" id="fluffiness" min="1" max="5" step="1" value="3" />
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="emojis" />
+            <span class="label">Add emojis</span>
+          </label>
+        </div>
+        <div class="aiRow">
+          <button type="button" class="primary" id="fluffifyBtn" disabled>Fluffify</button>
+        </div>
+        <div class="error" id="mainError"></div>
+      </section>
+      <section class="card">
+        <div class="outputHeader">
+          <h2 class="h2">Fluffy version</h2>
+          <button type="button" class="primary" id="copyBtn" disabled>Copy</button>
+        </div>
+        <textarea
+          class="output"
+          id="output"
+          readonly
+          rows="8"
+          aria-label="Generated fluffy message"
+        ></textarea>
+      </section>
+    </main>
+
+    <main id="settingsView" class="view hidden">
+      <header class="header">
+        <h1 class="title">Settings</h1>
+        <button type="button" class="link" id="settingsBackBtn">Back</button>
+      </header>
+      <section class="card">
+        <label class="field">
+          <span class="label">Edit settings for</span>
+          <select id="toneScope">
+            <option value="all">All message types</option>
+            <option value="email">Email</option>
+            <option value="text">Text</option>
+            <option value="grading">Grading comment</option>
+          </select>
+        </label>
+        <p class="hint" id="toneHint"></p>
+        <div class="tones" id="tones"></div>
+        <p class="hint">Changes save automatically.</p>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
