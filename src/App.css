@@ -390,6 +390,11 @@
   align-items: baseline;
 }
 
+.modal .tone .label {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 15px;
+}
+
 .toneValue {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.75);
